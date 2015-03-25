@@ -2,8 +2,9 @@
  *
  *  \file
  *  \brief      Implementation of Comms class methods to handle reading and 
- *              writing to the UM7 serial interface.
+ *              writing to the GP9 serial interface.
  *  \author     Mike Purvis <mpurvis@clearpathrobotics.com>
+ *  \author     Damian Manda <damian.manda@noaa.gov>
  *  \copyright  Copyright (c) 2013, Clearpath Robotics, Inc.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +33,7 @@
  *
  */
 
-#include "um7/comms.h"
+#include "gp9/comms.h"
 
 #include <arpa/inet.h>
 #include <boost/algorithm/string/predicate.hpp>
@@ -41,9 +42,9 @@
 
 #include "ros/console.h"
 #include "serial/serial.h"
-#include "um7/registers.h"
+#include "gp9/registers.h"
 
-namespace um7
+namespace gp9
 {
 
 const uint8_t Comms::PACKET_HAS_DATA = 1 << 7;
@@ -219,4 +220,4 @@ bool Comms::sendWaitAck(const Accessor_& r)
   }
   return false;
 }
-}  // namespace um7
+}  // namespace gp9

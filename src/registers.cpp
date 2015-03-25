@@ -4,6 +4,7 @@
  *  \brief      Stub method from the Accessor class.
  *  \author     Mike Purvis <mpurvis@clearpathrobotics.com>
  *  \copyright  Copyright (c) 2013, Clearpath Robotics, Inc.
+ *  \author     Damian Manda <damian.manda@noaa.gov>
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -31,9 +32,9 @@
  *
  */
 
-#include "um7/registers.h"
+#include "gp9/registers.h"
 
-namespace um7
+namespace gp9
 {
 
 void* Accessor_::raw() const
@@ -46,4 +47,4 @@ void* Accessor_::raw() const
    */
   return &registers_->raw_[index];
 }
-}  // namespace um7
+}  // namespace gp9
