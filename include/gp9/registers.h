@@ -8,6 +8,7 @@
  *  \copyright  Copyright (c) 2013, Clearpath Robotics, Inc.
  *  \author     Alex Brown <rbirac@cox.net>                 adapted code for UM7
  *  \copyright  Copyright (c) 2015, Alex Brown
+ *  \author     Damian Manda <damian.manda@noaa.gov>
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,8 +36,8 @@
  *
  */
 
-#ifndef INCLUDE_UM7_REGISTERS_H_
-#define INCLUDE_UM7_REGISTERS_H_
+#ifndef INCLUDE_GP9_REGISTERS_H_
+#define INCLUDE_GP9_REGISTERS_H_
 
 #if __APPLE__
 #include <machine/endian.h>
@@ -52,7 +53,7 @@
 #include <stdexcept>
 #include <string>
 
-#include "um7/firmware_registers.h"
+#include "gp9/firmware_registers.h"
 
 #define TO_RADIANS (M_PI / 180.0)
 #define TO_DEGREES (180.0 / M_PI)
@@ -62,7 +63,7 @@
 #define NUM_REGISTERS (DATA_REG_START_ADDRESS + DATA_ARRAY_SIZE)
 
 
-namespace um7 {
+namespace gp9 {
 
 inline void memcpy_network(void* dest, void* src, size_t count) {
 #if __BYTE_ORDER == __LITTLE_ENDIAN
@@ -82,7 +83,7 @@ class Registers;
 
 /**
  * This class provides an accessor of fields contained in one or more
- * consecutive UM7 registers. Each register is nominally a uint32_t, 
+ * consecutive GP9 registers. Each register is nominally a uint32_t, 
  * but XYZ vectors are sometimes stored as a pair of int16_t values in 
  * one register and one in the following register. Other values are 
  * stored as int32_t representation or float32s.
@@ -102,7 +103,7 @@ class Accessor_ {
 
     /** 
      * Number/address of the register in the array of uint32s which is
-     * shared with the UM7 firmware. */ 
+     * shared with the GP9 firmware. */ 
     const uint8_t index;
 
     /** 
@@ -204,4 +205,4 @@ class Registers {
 };
 }
 
-#endif  // INCLUDE_UM7_REGISTERS_H_
+#endif  // INCLUDE_GP9_REGISTERS_H_

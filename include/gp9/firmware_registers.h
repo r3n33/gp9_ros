@@ -4,12 +4,16 @@
  *           http://sourceforge.net/p/um6firmware/code/34/tree/trunk/UM6%20Firmware/UM6_config.h#l14
  *           Note: while while the source of this code is named "UM6_config.h", it is not the same
  *           as the file used for the UM6 and is part of the UM7 source code.
+ *           
+ *           Modified for GP9 register definitions 25 Mar 2015 by Damian Manda
  *  \author  Alex Brown  rbirac@cox.net
+ *  \author  Damian Manda <damian.manda@noaa.gov>
  *  \maintainer  Alex Brown  rbirac@cox.net    
  */
 
 
 // Define the firmware revision
+// Don't know this for GP9, but is not used in the code
 #define	UM6_FIRMWARE_REVISION		(('U' << 24) | ('7' << 16) | ('1' << 8) | 'C')
 
 // CONFIG_ARRAY_SIZE and DATA_ARRAY_SIZE specify the number of 32 bit configuration and data registers used by the firmware
@@ -22,7 +26,7 @@
 // This setup makes it easy to make more data immediately available when needed - simply increase the array size, add code in
 // the firmware that writes data to the new array location, and then make updates to the firmware definition on the PC side.
 #define	CONFIG_ARRAY_SIZE		27
-#define	DATA_ARRAY_SIZE			52
+#define	DATA_ARRAY_SIZE			70
 #define	COMMAND_COUNT			10
 
 #define HIDDEN_ARRAY_SIZE		127
@@ -65,8 +69,8 @@
 #define COM_BAUD_MASK				0x0F			// Uses 4 bits
 #define COM_BAUD_START				28				// Lowest-order bit on bit 28
 
-#define COM_GPS_BAUD_MASK           0x0F
-#define COM_GPS_BAUD_START          24
+//#define COM_GPS_BAUD_MASK           0x0F
+//#define COM_GPS_BAUD_START          24
 
 #define COM_GPS_DATA_ENABLED		(1 << 8)
 #define COM_GPS_SAT_DATA_ENABLED	(1 << 4)

@@ -1,13 +1,14 @@
 /**
  *
  *  \file
- *  \brief      Main entry point for UM7 driver. Handles serial connection
+ *  \brief      Main entry point for GP9 driver. Handles serial connection
  *              details, as well as all ROS message stuffing, parameters,
  *              topics, etc.
  *  \author     Mike Purvis <mpurvis@clearpathrobotics.com> (original code for UM6)
  *  \copyright  Copyright (c) 2013, Clearpath Robotics, Inc.
  *  \author     Alex Brown <rbirac@cox.net>		    (adapted to UM7)
  *  \copyright  Copyright (c) 2015, Alex Brown.
+ *  \author     Damian Manda <damian.manda@noaa.gov>  (adapted to GP9)
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -41,13 +42,13 @@
 #include "serial/serial.h"            // must install serial library from apt-get
 #include "std_msgs/Float32.h"
 #include "std_msgs/Header.h"
-#include "um7/comms.h"
-#include "um7/registers.h"
-#include "um7/Reset.h"
+#include "gp9/comms.h"
+#include "gp9/registers.h"
+#include "gp9/Reset.h"
 #include <string>
 
 float covar[9];     // orientation covariance values
-const char VERSION[10] = "0.0.2";   // um7_driver version
+const char VERSION[10] = "0.0.1";   // gp9_driver version
 
 // Don't try to be too clever. Arrival of this message triggers
 // us to publish everything we have.
@@ -55,10 +56,10 @@ const uint8_t TRIGGER_PACKET = DREG_EULER_PHI_THETA;
 
 /**
  * Function generalizes the process of writing an XYZ vector into consecutive
- * fields in UM7 registers.
+ * fields in GP9 registers.
  */
 template<typename RegT>
-void configureVector3(um7::Comms* sensor, const um7::Accessor<RegT>& reg,
+void configureVector3(gp9::Comms* sensor, const gp9::Accessor<RegT>& reg,
     std::string param, std::string human_name)
 {
   if (reg.length != 3)
@@ -85,11 +86,11 @@ void configureVector3(um7::Comms* sensor, const um7::Accessor<RegT>& reg,
 }
 
 /**
- * Function generalizes the process of commanding the UM7 via one of its command
+ * Function generalizes the process of commanding the GP9 via one of its command
  * registers.
  */
 template<typename RegT>
-void sendCommand(um7::Comms* sensor, const um7::Accessor<RegT>& reg, std::string human_name)
+void sendCommand(gp9::Comms* sensor, const gp9::Accessor<RegT>& reg, std::string human_name)
 {
   ROS_INFO_STREAM("Sending command: " << human_name);
   if (!sensor->sendWaitAck(reg))
@@ -100,12 +101,12 @@ void sendCommand(um7::Comms* sensor, const um7::Accessor<RegT>& reg, std::string
 
 
 /**
- * Send configuration messages to the UM7, critically, to turn on the value outputs
+ * Send configuration messages to the GP9, critically, to turn on the value outputs
  * which we require, and inject necessary configuration parameters.
  */
-void configureSensor(um7::Comms* sensor)
+void configureSensor(gp9::Comms* sensor)
 {
-  um7::Registers r;
+  gp9::Registers r;
 
     uint32_t comm_reg = (BAUD_115200 << COM_BAUD_START);
     r.communication.set(0, comm_reg);
@@ -183,10 +184,10 @@ void configureSensor(um7::Comms* sensor)
 }
 
 
-bool handleResetService(um7::Comms* sensor,
-    const um7::Reset::Request& req, const um7::Reset::Response& resp)
+bool handleResetService(gp9::Comms* sensor,
+    const gp9::Reset::Request& req, const gp9::Reset::Response& resp)
 {
-  um7::Registers r;
+  gp9::Registers r;
   if (req.zero_gyros) sendCommand(sensor, r.cmd_zero_gyros, "zero gyroscopes");
   if (req.reset_ekf) sendCommand(sensor, r.cmd_reset_ekf, "reset EKF");
   if (req.set_mag_ref) sendCommand(sensor, r.cmd_set_mag_ref, "set magnetometer reference");
@@ -197,7 +198,7 @@ bool handleResetService(um7::Comms* sensor,
  * Uses the register accessors to grab data from the IMU, and populate
  * the ROS messages which are output.
  */
-void publishMsgs(um7::Registers& r, ros::NodeHandle* n, const std_msgs::Header& header)
+void publishMsgs(gp9::Registers& r, ros::NodeHandle* n, const std_msgs::Header& header)
 {
   static ros::Publisher imu_pub = n->advertise<sensor_msgs::Imu>("imu/data", 1, false);
   static ros::Publisher mag_pub = n->advertise<geometry_msgs::Vector3Stamped>("imu/mag", 1, false);
@@ -276,7 +277,7 @@ void publishMsgs(um7::Registers& r, ros::NodeHandle* n, const std_msgs::Header& 
  */
 int main(int argc, char **argv)
 {
-  ros::init(argc, argv, "um7_driver");
+  ros::init(argc, argv, "gp9_driver");
 
   // Load parameters from private node handle.
   std::string port;
@@ -295,7 +296,7 @@ int main(int argc, char **argv)
   std_msgs::Header header;
   ros::param::param<std::string>("~frame_id", header.frame_id, "imu_link");
 
-  // Initialize covariance. The UM7 sensor does not provide covariance values so,
+  // Initialize covariance. The GP9 sensor does not provide covariance values so,
   //   by default, this driver provides a covariance array of all zeros indicating
   //   "covariance unknown" as advised in sensor_msgs/Imu.h.
   // This param allows the user to specify alternate covariance values if needed.
@@ -325,18 +326,18 @@ int main(int argc, char **argv)
     }
     catch(const serial::IOException& e)
     {
-        ROS_DEBUG("um7_driver ver %s unable to connect to port.", VERSION);
+        ROS_DEBUG("gp9_driver ver %s unable to connect to port.", VERSION);
     }
     if (ser.isOpen())
     {
-      ROS_INFO("um7_driver ver %s connected to serial port.", VERSION);
+      ROS_INFO("gp9_driver ver %s connected to serial port.", VERSION);
       first_failure = true;
       try
       {
-        um7::Comms sensor(&ser);
+        gp9::Comms sensor(&ser);
         configureSensor(&sensor);
-        um7::Registers registers;
-        ros::ServiceServer srv = n.advertiseService<um7::Reset::Request, um7::Reset::Response>(
+        gp9::Registers registers;
+        ros::ServiceServer srv = n.advertiseService<gp9::Reset::Request, gp9::Reset::Response>(
             "reset", boost::bind(handleResetService, &sensor, _1, _2));
 
         while (ros::ok())

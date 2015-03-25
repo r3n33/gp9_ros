@@ -2,8 +2,9 @@
  *
  *  \file
  *  \brief      Comms class definition. Does not manage the serial connection
- *              itself, but takes care of reading and writing to UM7.
+ *              itself, but takes care of reading and writing to GP9.
  *  \author     Mike Purvis <mpurvis@clearpathrobotics.com>
+ *  \author     Damian Manda <damian.manda@noaa.gov>
  *  \copyright  Copyright (c) 2013, Clearpath Robotics, Inc.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -32,8 +33,8 @@
  *
  */
 
-#ifndef INCLUDE_UM7_COMMS_H_
-#define INCLUDE_UM7_COMMS_H_
+#ifndef INCLUDE_GP9_COMMS_H_
+#define INCLUDE_GP9_COMMS_H_
 
 #include <stdint.h>
 #include <string>
@@ -42,7 +43,7 @@ namespace serial {
   class Serial;
 }
 
-namespace um7 {
+namespace gp9 {
 
 class SerialTimeout : public std::exception {};
 
@@ -83,5 +84,5 @@ class Comms {
 };
 }
 
-#endif  // INCLUDE_UM7_COMMS_H_
+#endif  // INCLUDE_GP9_COMMS_H_
 
