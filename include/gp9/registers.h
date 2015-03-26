@@ -8,6 +8,7 @@
  *  \copyright  Copyright (c) 2013, Clearpath Robotics, Inc.
  *  \author     Alex Brown <rbirac@cox.net>                 adapted code for UM7
  *  \copyright  Copyright (c) 2015, Alex Brown
+ *  \author     Damian Manda <damian.manda@noaa.gov>
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:

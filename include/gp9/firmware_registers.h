@@ -26,7 +26,7 @@
 // This setup makes it easy to make more data immediately available when needed - simply increase the array size, add code in
 // the firmware that writes data to the new array location, and then make updates to the firmware definition on the PC side.
 #define	CONFIG_ARRAY_SIZE		27
-#define	DATA_ARRAY_SIZE			52
+#define	DATA_ARRAY_SIZE			70
 #define	COMMAND_COUNT			10
 
 #define HIDDEN_ARRAY_SIZE		127
@@ -69,8 +69,8 @@
 #define COM_BAUD_MASK				0x0F			// Uses 4 bits
 #define COM_BAUD_START				28				// Lowest-order bit on bit 28
 
-#define COM_GPS_BAUD_MASK           0x0F
-#define COM_GPS_BAUD_START          24
+//#define COM_GPS_BAUD_MASK           0x0F
+//#define COM_GPS_BAUD_START          24
 
 #define COM_GPS_DATA_ENABLED		(1 << 8)
 #define COM_GPS_SAT_DATA_ENABLED	(1 << 4)
