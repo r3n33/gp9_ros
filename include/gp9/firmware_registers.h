@@ -49,28 +49,26 @@
 #define CREG_HOME_NORTH				9
 #define CREG_HOME_EAST				10
 #define CREG_HOME_UP				11
-#define CREG_GYRO_TRIM_X			12		// Floating point trim (actual angular rate)
-#define CREG_GYRO_TRIM_Y			13
-#define CREG_GYRO_TRIM_Z			14
-#define CREG_MAG_CAL1_1				15
-#define CREG_MAG_CAL1_2				16
-#define CREG_MAG_CAL1_3				17
-#define CREG_MAG_CAL2_1				18
-#define CREG_MAG_CAL2_2				19
-#define CREG_MAG_CAL2_3				20
-#define CREG_MAG_CAL3_1				21
-#define CREG_MAG_CAL3_2				22
-#define CREG_MAG_CAL3_3				23
-#define CREG_MAG_BIAS_X				24
-#define CREG_MAG_BIAS_Y				25
-#define CREG_MAG_BIAS_Z				26
+#define CREG_ZERO_PRESSURE          12
+#define CREG_GYRO_TRIM_X			14		// Floating point trim (actual angular rate)
+#define CREG_GYRO_TRIM_Y			15
+#define CREG_GYRO_TRIM_Z			16
+#define CREG_MAG_CAL1_1				66
+#define CREG_MAG_CAL1_2				67
+#define CREG_MAG_CAL1_3				68
+#define CREG_MAG_CAL2_1				69
+#define CREG_MAG_CAL2_2				70
+#define CREG_MAG_CAL2_3				71
+#define CREG_MAG_CAL3_1				72
+#define CREG_MAG_CAL3_2				73
+#define CREG_MAG_CAL3_3				74
+#define CREG_MAG_BIAS_X				75
+#define CREG_MAG_BIAS_Y				76
+#define CREG_MAG_BIAS_Z				77
 
 // Bit definitions for COM_SETTINGS register
 #define COM_BAUD_MASK				0x0F			// Uses 4 bits
 #define COM_BAUD_START				28				// Lowest-order bit on bit 28
-
-//#define COM_GPS_BAUD_MASK           0x0F
-//#define COM_GPS_BAUD_START          24
 
 #define COM_GPS_DATA_ENABLED		(1 << 8)
 #define COM_GPS_SAT_DATA_ENABLED	(1 << 4)
@@ -113,6 +111,8 @@
 #define RATE3_PROC_PRESS_MASK       0x0FF
 #define RATE3_PROC_PRESS_START      0
 
+#define RATE4_PROC_TEMP_MASK        0x0FF
+#define RATE4_PROC_TEMP_START       24
 #define RATE4_ALL_PROC_MASK			0x0FF
 #define RATE4_ALL_PROC_START		0
 
@@ -129,6 +129,10 @@
 #define RATE6_POSE_START			24
 #define RATE6_HEALTH_MASK			0x0F
 #define RATE6_HEALTH_START			16
+#define RATE6_VARIANCE_MASK         0x0FF
+#define RATE6_VARIANCE_START        8
+#define RATE6_GYRO_BIAS_MASK        0x0FF
+#define RATE6_GYRO_BIAS_START       0
 
 #define RATE7_NMEA_HEALTH_MASK		0x0F
 #define RATE7_NMEA_HEALTH_START		28
@@ -138,18 +142,11 @@
 #define RATE7_NMEA_ATTITUDE_START	20
 #define RATE7_NMEA_SENSOR_MASK		0x0F
 #define RATE7_NMEA_SENSOR_START		16
-#define RATE7_NMEA_RATE_MASK		0x0F
-#define RATE7_NMEA_RATE_START		12
-#define RATE7_NMEA_GPS_POSE_MASK	0x0F
-#define RATE7_NMEA_GPS_POSE_START	8
-#define RATE7_NMEA_QUATERNION_MASK	0x0F
-#define RATE7_NMEA_QUATERNION_START	4
 
 // Bit definitions for filter settings register.
-#define MAG_UPDATES_ENABLED			(1 << 0)
-#define QUATERNION_MODE_ENABLED     (1 << 1)
-#define ZERO_GYROS_ON_STARTUP       (1 << 2)
-#define USE_TX2_AS_PPS_INPUT		(1 << 8)
+#define GPS_UPDATES_ENABLED         (1 << 30)
+#define MAG_UPDATES_ENABLED			(1 << 29)
+#define ACC_UPDATES_ENABLED         (1 << 28)
 
 // Definitions of data registers/addresses
 #define DREG_HEALTH					85
@@ -162,48 +159,65 @@
 #define DREG_MAG_RAW_XY				92
 #define DREG_MAG_RAW_Z				93
 #define DREG_MAG_RAW_TIME			94
-#define DREG_TEMPERATURE    		95
-#define DREG_TEMPERATURE_TIME		96
-#define DREG_GYRO_PROC_X			97
-#define DREG_GYRO_PROC_Y			98
-#define DREG_GYRO_PROC_Z			99
-#define DREG_GYRO_PROC_TIME			100
-#define DREG_ACCEL_PROC_X			101
-#define DREG_ACCEL_PROC_Y			102
-#define DREG_ACCEL_PROC_Z			103
-#define DREG_ACCEL_PROC_TIME		104
-#define DREG_MAG_PROC_X				105
-#define DREG_MAG_PROC_Y				106
-#define DREG_MAG_PROC_Z				107
-#define DREG_MAG_PROC_TIME			108
-#define DREG_QUAT_AB				109
-#define DREG_QUAT_CD				110
-#define DREG_QUAT_TIME				111
-#define DREG_EULER_PHI_THETA		112
-#define DREG_EULER_PSI				113
-#define DREG_EULER_PHI_THETA_DOT	114
-#define DREG_EULER_PSI_DOT			115
-#define DREG_EULER_TIME				116
-#define DREG_POSITION_NORTH			117
-#define DREG_POSITION_EAST			118
-#define DREG_POSITION_UP			119
-#define DREG_POSITION_TIME			120
-#define DREG_VELOCITY_NORTH			121
-#define DREG_VELOCITY_EAST			122
-#define DREG_VELOCITY_UP			123
-#define DREG_VELOCITY_TIME			124
-#define DREG_GPS_LATITUDE			125
-#define DREG_GPS_LONGITUDE			126
-#define DREG_GPS_ALTITUDE			127
-#define DREG_GPS_COURSE				128
-#define DREG_GPS_SPEED				129
-#define DREG_GPS_TIME				130
-#define DREG_GPS_SAT_1_2			131
-#define DREG_GPS_SAT_3_4			132
-#define DREG_GPS_SAT_5_6			133
-#define DREG_GPS_SAT_7_8			134
-#define DREG_GPS_SAT_9_10			135
-#define DREG_GPS_SAT_11_12			136
+#define DREG_PRESSURE_RAW           95  //2's complement 32 bit
+#define DREG_PRESSURE_TIME          96
+#define DREG_TEMPERATURE_RAW1    	97  //from accelerometer, magnetometer, and rate gyro IC
+#define DREG_TEMPERATURE_RAW2       98  //from the absolute pressure IC 
+#define DREG_TEMPERATURE_TIME		99
+#define DREG_GYRO_PROC_X			100
+#define DREG_GYRO_PROC_Y			101
+#define DREG_GYRO_PROC_Z			102
+#define DREG_GYRO_PROC_TIME			103
+#define DREG_ACCEL_PROC_X			104
+#define DREG_ACCEL_PROC_Y			105
+#define DREG_ACCEL_PROC_Z			106
+#define DREG_ACCEL_PROC_TIME		107
+#define DREG_MAG_PROC_X				108
+#define DREG_MAG_PROC_Y				109
+#define DREG_MAG_PROC_Z				110
+#define DREG_MAG_PROC_TIME			111
+#define DREG_PRESSURE_PROC          112
+#define DREG_PRESSURE_PROC_TIME     113
+#define DREG_TEMPERATURE_PROC1      114
+#define DREG_TEMPERATURE_PROC2      115
+#define DREG_TEMPERATURE_PROC_TIME  116
+#define DREG_QUAT_AB				117
+#define DREG_QUAT_CD				118
+#define DREG_QUAT_TIME				119
+#define DREG_EULER_PHI_THETA		120
+#define DREG_EULER_PSI				121
+#define DREG_EULER_TIME				122
+#define DREG_POSITION_NORTH			123
+#define DREG_POSITION_EAST			124
+#define DREG_POSITION_UP			125
+#define DREG_POSITION_TIME			126
+#define DREG_VELOCITY_NORTH			127
+#define DREG_VELOCITY_EAST			128
+#define DREG_VELOCITY_UP			129
+#define DREG_VELOCITY_TIME			131
+#define DREG_GPS_LATITUDE			132
+#define DREG_GPS_LONGITUDE			133
+#define DREG_GPS_ALTITUDE			134
+#define DREG_GPS_COURSE				135
+#define DREG_GPS_SPEED				136
+#define DREG_GPS_TIME				137
+#define DREG_GPS_DATE               138
+#define DREG_GPS_SAT_1_2			139
+#define DREG_GPS_SAT_3_4			140
+#define DREG_GPS_SAT_5_6			141
+#define DREG_GPS_SAT_7_8			142
+#define DREG_GPS_SAT_9_10			143
+#define DREG_GPS_SAT_11_12			144
+#define DREG_GYRO_BIAS_X            145
+#define DREG_GYRO_BIAS_Y            146
+#define DREG_GYRO_BIAS_Z            147
+#define DREG_BIAS_X_VARIANCE        148
+#define DREG_BIAS_Y_VARIANCE        149
+#define DREG_BIAS_X_VARIANCE        150
+#define DREG_QUAT_A_VARIANCE        151
+#define DREG_QUAT_B_VARIANCE        152
+#define DREG_QUAT_C_VARIANCE        153
+#define DREG_QUAT_D_VARIANCE        154
 
 // Bit definitions for sensor health register
 #define HEALTH_SATS_USED_MASK		0x3F		// Uses 6 bits
@@ -212,13 +226,32 @@
 #define HEALTH_HDOP_START			16			// Lowest-order bit starts at 16
 #define HEALTH_SATS_IN_VIEW_MASK	0x3F		
 #define HEALTH_SATS_IN_VIEW_START	10
-#define HEALTH_COM_OVERFLOW			(1 << 8)	// Set when the sensor was unable to transmit all the requested data
-#define HEALTH_MAG_NORM				(1 << 5)
-#define HEALTH_ACCEL_NORM			(1 << 4)
+#define HEALTH_COM_OVERFLOW			(1 << 9)	// Set when the sensor was unable to transmit all the requested data
+#define HEALTH_GPS_ST_MASK			0x002
+#define HEALTH_GPS_ST_START         5
+#define HEALTH_PRESS    			(1 << 4)
 #define HEALTH_ACCEL				(1 << 3)
 #define HEALTH_GYRO					(1 << 2)
 #define HEALTH_MAG					(1 << 1)
 #define HEALTH_GPS					(1 << 0)
+
+// Bit definitions for GPS Date
+#define GPS_DATE_YEAR_MASK          0x0FF
+#define GPS_DATE_YEAR_START         16
+#define GPS_DATE_MONTH_MASK         0x0FF
+#define GPS_DATE_MONTH_START        8
+#define GPS_DATE_DAY_MASK           0x0FF
+#define GPS_DATE_DAY_START          0
+
+// GPS Satellite Register bit definitions
+#define GPS_SAT_ID1_MASK            0x0FF
+#define GPS_SAT_ID1_START           24
+#define GPS_SAT_SNR1_MASK           0x0FF
+#define GPS_SAT_SNR1_START          16 
+#define GPS_SAT_ID2_MASK            0x0FF
+#define GPS_SAT_ID2_START           24
+#define GPS_SAT_SNR2_MASK           0x0FF
+#define GPS_SAT_SNR2_START          16 
 
 // Definition of packet address for COM error codes
 #define	CHR_BAD_CHECKSUM			253								// Sent if the module receives a packet with a bad checksum
@@ -231,8 +264,6 @@
 #define	CHR_RESET_TO_FACTORY	(COMMAND_START_ADDRESS + 2)		// Causes the UM6 to load default factory settings
 #define CHR_ZERO_GYROS			(COMMAND_START_ADDRESS + 3)
 #define CHR_SET_HOME_POSITION	(COMMAND_START_ADDRESS + 4)
-#define CHR_FACTORY_COMMIT		(COMMAND_START_ADDRESS + 5)
-#define CHR_SET_MAG_REFERENCE	(COMMAND_START_ADDRESS + 6)
 
 #define CHR_RESET_EKF			(COMMAND_START_ADDRESS + 9)
 
