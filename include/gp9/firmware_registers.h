@@ -45,7 +45,7 @@
 #define CREG_COM_RATES5				5
 #define CREG_COM_RATES6				6
 #define CREG_COM_RATES7				7
-#define CREG_MISC_SETTINGS			8
+#define CREG_FILTER_SETTINGS		8
 #define CREG_HOME_NORTH				9
 #define CREG_HOME_EAST				10
 #define CREG_HOME_UP				11
@@ -213,7 +213,7 @@
 #define DREG_GYRO_BIAS_Z            147
 #define DREG_BIAS_X_VARIANCE        148
 #define DREG_BIAS_Y_VARIANCE        149
-#define DREG_BIAS_X_VARIANCE        150
+#define DREG_BIAS_Z_VARIANCE        150
 #define DREG_QUAT_A_VARIANCE        151
 #define DREG_QUAT_B_VARIANCE        152
 #define DREG_QUAT_C_VARIANCE        153
@@ -264,7 +264,6 @@
 #define	CHR_RESET_TO_FACTORY	(COMMAND_START_ADDRESS + 2)		// Causes the UM6 to load default factory settings
 #define CHR_ZERO_GYROS			(COMMAND_START_ADDRESS + 3)
 #define CHR_SET_HOME_POSITION	(COMMAND_START_ADDRESS + 4)
-
 #define CHR_RESET_EKF			(COMMAND_START_ADDRESS + 9)
 
 // Some definitions for working with COM events

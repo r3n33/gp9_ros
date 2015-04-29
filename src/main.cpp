@@ -108,73 +108,98 @@ void configureSensor(gp9::Comms* sensor)
 {
   gp9::Registers r;
 
-    uint32_t comm_reg = (BAUD_115200 << COM_BAUD_START);
-    r.communication.set(0, comm_reg);
-    if (!sensor->sendWaitAck(r.comrate2))
-    {
-      throw std::runtime_error("Unable to set CREG_COM_SETTINGS.");
-    }
+  uint32_t comm_reg = (BAUD_115200 << COM_BAUD_START);
+  r.communication.set(0, comm_reg);
+  if (!sensor->sendWaitAck(r.comrate2))
+  {
+    throw std::runtime_error("Unable to set CREG_COM_SETTINGS.");
+  }
 
-    uint32_t raw_rate = (20 << RATE2_ALL_RAW_START);
-    r.comrate2.set(0, raw_rate);
-    if (!sensor->sendWaitAck(r.comrate2))
-    {
-      throw std::runtime_error("Unable to set CREG_COM_RATES2.");
-    }
+  uint32_t raw_rate = (0 << RATE2_ALL_RAW_START);
+  r.comrate2.set(0, raw_rate);
+  if (!sensor->sendWaitAck(r.comrate2))
+  {
+    throw std::runtime_error("Unable to set CREG_COM_RATES2.");
+  }
 
-    uint32_t proc_rate = (20 << RATE4_ALL_PROC_START);
-    r.comrate4.set(0, proc_rate);
-    if (!sensor->sendWaitAck(r.comrate4))
-    {
-      throw std::runtime_error("Unable to set CREG_COM_RATES4.");
-    }
+  uint32_t proc_rate = (1 << RATE4_ALL_PROC_START);
+  r.comrate4.set(0, proc_rate);
+  if (!sensor->sendWaitAck(r.comrate4))
+  {
+    throw std::runtime_error("Unable to set CREG_COM_RATES4.");
+  }
 
-    uint32_t misc_rate = (20 << RATE5_EULER_START) | (20 << RATE5_QUAT_START);
-    r.comrate5.set(0, misc_rate);
-    if (!sensor->sendWaitAck(r.comrate5))
-    {
-      throw std::runtime_error("Unable to set CREG_COM_RATES5.");
-    }
+  uint32_t misc_rate = (20 << RATE5_EULER_START) | (10 << RATE5_POSITION_START)
+           | (10 << RATE5_VELOCITY_START) | (0 << RATE5_QUAT_START);
+  r.comrate5.set(0, misc_rate);
+  if (!sensor->sendWaitAck(r.comrate5))
+  {
+    throw std::runtime_error("Unable to set CREG_COM_RATES5.");
+  }
 
-    uint32_t health_rate = (5 << RATE6_HEALTH_START);  // note:  5 gives 2 hz rate
-    r.comrate6.set(0, health_rate);
-    if (!sensor->sendWaitAck(r.comrate6))
-    {
-      throw std::runtime_error("Unable to set CREG_COM_RATES6.");
-    }
+  uint32_t health_rate = (0 << RATE6_POSE_START) | (5 << RATE6_HEALTH_START);  // note:  5 gives 2 hz rate
+  r.comrate6.set(0, health_rate);
+  if (!sensor->sendWaitAck(r.comrate6))
+  {
+    throw std::runtime_error("Unable to set CREG_COM_RATES6.");
+  }
+
+  // r.home_north.set(0, (float)m_dLatOrigin);
+  // if (!sensor->sendWaitAck(r.home_north))
+  // {
+  //   throw std::runtime_error("Unable to set CREG_HOME_NORTH.");
+  // }
+
+  // r.home_east.set(0, (float)m_dLonOrigin);
+  // if (!sensor->sendWaitAck(r.home_east))
+  // {
+  //   throw std::runtime_error("Unable to set CREG_HOME_EAST.");
+  // }
 
 
   // Options available using parameters)
-  uint32_t misc_config_reg = 0;  // initialize all options off
+  uint32_t filter_config_reg = 0;  // initialize all options off
 
   // Optionally disable mag updates in the sensor's EKF.
   bool mag_updates;
   ros::param::param<bool>("~mag_updates", mag_updates, true);
   if (mag_updates)
   {
-    misc_config_reg |= MAG_UPDATES_ENABLED;
+    filter_config_reg |= MAG_UPDATES_ENABLED;
   }
   else
   {
     ROS_WARN("Excluding magnetometer updates from EKF.");
   }
 
-  // Optionally enable quaternion mode .
-  bool quat_mode;
-  ros::param::param<bool>("~quat_mode", quat_mode, true);
-  if (quat_mode)
+  // Optionally disable accelerometer updates in the sensor's EKF.
+  bool acc_updates;
+  ros::param::param<bool>("~acc_updates", acc_updates, true);
+  if (acc_updates)
   {
-    misc_config_reg |= QUATERNION_MODE_ENABLED;
+    filter_config_reg |= ACC_UPDATES_ENABLED;
   }
   else
   {
-    ROS_WARN("Excluding quaternion mode.");
+    ROS_WARN("Excluding accelerometer updates from EKF.");
   }
 
-  r.misc_config.set(0, misc_config_reg);
-  if (!sensor->sendWaitAck(r.misc_config))
+  // Optionally disable accelerometer updates in the sensor's EKF.
+  bool gps_updates;
+  ros::param::param<bool>("~gps_updates", gps_updates, true);
+  if (gps_updates)
   {
-    throw std::runtime_error("Unable to set CREG_MISC_SETTINGS.");
+    filter_config_reg |= GPS_UPDATES_ENABLED;
+  }
+  else
+  {
+    ROS_WARN("Excluding GPS updates from EKF.");
+  }
+
+  r.filter_config.set(0, filter_config_reg);
+  if (!sensor->sendWaitAck(r.filter_config))
+  {
+    throw std::runtime_error("Unable to set CREG_FILTER_SETTINGS.");
   }
 
   // Optionally disable performing a zero gyros command on driver startup.
@@ -190,7 +215,8 @@ bool handleResetService(gp9::Comms* sensor,
   gp9::Registers r;
   if (req.zero_gyros) sendCommand(sensor, r.cmd_zero_gyros, "zero gyroscopes");
   if (req.reset_ekf) sendCommand(sensor, r.cmd_reset_ekf, "reset EKF");
-  if (req.set_mag_ref) sendCommand(sensor, r.cmd_set_mag_ref, "set magnetometer reference");
+  if (req.set_home_pos) sendCommand(sensor, r.cmd_set_home_pos, "set home position")
+  //if (req.set_mag_ref) sendCommand(sensor, r.cmd_set_mag_ref, "set magnetometer reference");
   return true;
 }
 
@@ -204,6 +230,7 @@ void publishMsgs(gp9::Registers& r, ros::NodeHandle* n, const std_msgs::Header& 
   static ros::Publisher mag_pub = n->advertise<geometry_msgs::Vector3Stamped>("imu/mag", 1, false);
   static ros::Publisher rpy_pub = n->advertise<geometry_msgs::Vector3Stamped>("imu/rpy", 1, false);
   static ros::Publisher temp_pub = n->advertise<std_msgs::Float32>("imu/temperature", 1, false);
+  static ros::Publisher pos_pub = n->advertise<sensor_msgs:NavSatFix>("imu/position", 1, false);
 
   if (imu_pub.getNumSubscribers() > 0)
   {
@@ -266,8 +293,15 @@ void publishMsgs(gp9::Registers& r, ros::NodeHandle* n, const std_msgs::Header& 
   if (temp_pub.getNumSubscribers() > 0)
   {
     std_msgs::Float32 temp_msg;
-    temp_msg.data = r.temperature.get_scaled(0);
+    temp_msg.data = r.temperature1.get_scaled(0);
     temp_pub.publish(temp_msg);
+  }
+
+  if (pos_pub.getNumSubscribers() > 0)
+  {
+    sensor_msgs::NavSatStatus status_msg;
+
+    //Put stuff here
   }
 }
 
