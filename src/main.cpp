@@ -49,7 +49,7 @@
 #include <string>
 
 float covar[9];     // orientation covariance values
-const char VERSION[10] = "0.0.1";   // gp9_driver version
+const char VERSION[10] = "0.0.3";   // gp9_driver version
 
 // Don't try to be too clever. Arrival of this message triggers
 // us to publish everything we have.
@@ -123,15 +123,24 @@ void configureSensor(gp9::Comms* sensor)
     throw std::runtime_error("Unable to set CREG_COM_RATES2.");
   }
 
-  uint32_t proc_rate = (1 << RATE4_ALL_PROC_START);
+
+  uint32_t proc_rate_indiv = (10 << RATE3_PROC_ACCEL_START) | (10 << RATE3_PROC_GYRO_START) 
+	| (2 << RATE3_PROC_MAG_START) | (0 << RATE3_PROC_PRESS_START);
+  r.comrate3.set(0, proc_rate_indiv);
+  if (!sensor->sendWaitAck(r.comrate3))
+  {
+    throw std::runtime_error("Unable to set CREG_COM_RATES3.");
+  }
+
+  uint32_t proc_rate = (0 << RATE4_ALL_PROC_START) | (1 << RATE4_PROC_TEMP_START);
   r.comrate4.set(0, proc_rate);
   if (!sensor->sendWaitAck(r.comrate4))
   {
     throw std::runtime_error("Unable to set CREG_COM_RATES4.");
   }
 
-  uint32_t misc_rate = (20 << RATE5_EULER_START) | (10 << RATE5_POSITION_START)
-           | (10 << RATE5_VELOCITY_START) | (0 << RATE5_QUAT_START);
+  uint32_t misc_rate = (10 << RATE5_EULER_START) | (0 << RATE5_POSITION_START)
+           | (0 << RATE5_VELOCITY_START) | (10 << RATE5_QUAT_START);
   r.comrate5.set(0, misc_rate);
   if (!sensor->sendWaitAck(r.comrate5))
   {
@@ -185,7 +194,7 @@ void configureSensor(gp9::Comms* sensor)
     ROS_WARN("Excluding accelerometer updates from EKF.");
   }
 
-  // Optionally disable accelerometer updates in the sensor's EKF.
+  // Optionally disable gps updates in the sensor's EKF.
   bool gps_updates;
   ros::param::param<bool>("~gps_updates", gps_updates, true);
   if (gps_updates)
@@ -317,7 +326,7 @@ int main(int argc, char **argv)
   // Load parameters from private node handle.
   std::string port;
   int32_t baud;
-  ros::param::param<std::string>("~port", port, "/dev/ttyUSB0");
+  ros::param::param<std::string>("~port", port, "/dev/ttyAMA0");
   ros::param::param<int32_t>("~baud", baud, 115200);
 
   serial::Serial ser;

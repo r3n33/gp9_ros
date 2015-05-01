@@ -128,6 +128,7 @@ int16_t Comms::receive(Registers* registers = NULL)
     checksum_transmitted = ntohs(checksum_transmitted);
     if (checksum_transmitted != checksum_calculated)
     {
+      //ROS_WARN(data);
       throw BadChecksum();
     }
 
