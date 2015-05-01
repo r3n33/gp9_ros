@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(um7)
+project(gp9)
 
 find_package(catkin REQUIRED COMPONENTS roscpp serial roslint sensor_msgs 
              message_generation)
@@ -27,16 +27,16 @@ include_directories(include
 )
 
 ## Declare a cpp executable
-add_executable(um7_driver src/main.cpp src/registers.cpp src/comms.cpp)
-target_link_libraries(um7_driver ${catkin_LIBRARIES} )
-add_dependencies(um7_driver um7_generate_messages_cpp)
+add_executable(gp9_driver src/main.cpp src/registers.cpp src/comms.cpp)
+target_link_libraries(gp9_driver ${catkin_LIBRARIES} )
+add_dependencies(gp9_driver gp9_generate_messages_cpp)
 
 
 #############
 ## Install ##
 #############
 
-install(TARGETS um7_driver
+install(TARGETS gp9_driver
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
@@ -46,8 +46,8 @@ install(TARGETS um7_driver
 
 file(GLOB LINT_SRCS
   src/*.cpp
-  include/um6/registers.h
-  include/um6/comms.h)
+  include/gp9/registers.h
+  include/gp9/comms.h)
 roslint_cpp(${LINT_SRCS})
 roslint_add_test()
 

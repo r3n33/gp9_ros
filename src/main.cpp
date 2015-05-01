@@ -39,6 +39,7 @@
 #include "geometry_msgs/Vector3Stamped.h"
 #include "ros/ros.h"
 #include "sensor_msgs/Imu.h"
+#include "sensor_msgs/NavSatFix.h"
 #include "serial/serial.h"            // must install serial library from apt-get
 #include "std_msgs/Float32.h"
 #include "std_msgs/Header.h"
@@ -215,7 +216,7 @@ bool handleResetService(gp9::Comms* sensor,
   gp9::Registers r;
   if (req.zero_gyros) sendCommand(sensor, r.cmd_zero_gyros, "zero gyroscopes");
   if (req.reset_ekf) sendCommand(sensor, r.cmd_reset_ekf, "reset EKF");
-  if (req.set_home_pos) sendCommand(sensor, r.cmd_set_home_pos, "set home position")
+  if (req.set_home_pos) sendCommand(sensor, r.cmd_set_home_pos, "set home position");
   //if (req.set_mag_ref) sendCommand(sensor, r.cmd_set_mag_ref, "set magnetometer reference");
   return true;
 }
@@ -230,7 +231,7 @@ void publishMsgs(gp9::Registers& r, ros::NodeHandle* n, const std_msgs::Header& 
   static ros::Publisher mag_pub = n->advertise<geometry_msgs::Vector3Stamped>("imu/mag", 1, false);
   static ros::Publisher rpy_pub = n->advertise<geometry_msgs::Vector3Stamped>("imu/rpy", 1, false);
   static ros::Publisher temp_pub = n->advertise<std_msgs::Float32>("imu/temperature", 1, false);
-  static ros::Publisher pos_pub = n->advertise<sensor_msgs:NavSatFix>("imu/position", 1, false);
+  static ros::Publisher pos_pub = n->advertise<sensor_msgs::NavSatFix>("imu/position", 1, false);
 
   if (imu_pub.getNumSubscribers() > 0)
   {
