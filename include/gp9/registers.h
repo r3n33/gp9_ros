@@ -162,7 +162,7 @@ class Registers {
       temperature_raw2(this, DREG_TEMPERATURE_RAW2, 1),
       // Processed Data
       gyro(this, DREG_GYRO_PROC_X, 3, 1.0 * TO_RADIANS),
-      accel(this, DREG_ACCEL_PROC_X, 3, 9.80665),              
+      accel(this, DREG_ACCEL_PROC_X, 3, 1),              
       mag(this, DREG_MAG_PROC_X, 3,1.0),
       pressure(this, DREG_PRESSURE_PROC, 1),
       temperature1(this, DREG_TEMPERATURE_PROC1, 1),
