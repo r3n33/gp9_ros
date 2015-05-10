@@ -168,6 +168,7 @@ class Registers {
       temperature1(this, DREG_TEMPERATURE_PROC1, 1),
       temperature2(this, DREG_TEMPERATURE_PROC2, 1),
       quat(this, DREG_QUAT_AB, 4, 0.000033569336),
+      quat_var(this, DREG_QUAT_A_VARIANCE, 4, 1),
       euler(this, DREG_EULER_PHI_THETA, 3, 0.00019174759868),   //in radians
       euler_time(this, DREG_EULER_TIME, 1),
       // GPS Data
@@ -181,6 +182,7 @@ class Registers {
       velocity_time(this, DREG_VELOCITY_TIME, 1),
       latitude(this, DREG_GPS_LATITUDE, 1),
       longitude(this, DREG_GPS_LONGITUDE, 1),
+      gps_altitude(this, DREG_GPS_ALTITUDE, 1),
       gps_course(this, DREG_GPS_COURSE, 1),
       gps_speed(this, DREG_GPS_SPEED, 1),
       gps_time(this, DREG_GPS_TIME, 1),
@@ -211,12 +213,12 @@ class Registers {
     const Accessor<uint32_t> health, pressure_raw, gps_date;
     const Accessor<int16_t> gyro_raw, accel_raw, euler, mag_raw, quat;
                              
-    const Accessor<float> gyro, accel, mag, temperature1, temperature2,
+    const Accessor<float> gyro, accel, mag, temperature1, temperature2, quat_var,
                           temperature_raw1, temperature_raw2, pressure, euler_time;
 
     const Accessor<float> latitude, longitude, gps_course, pos_n, pos_e, pos_up,
                           pos_time, velocity_n, velocity_e, velocity_up, 
-                          velocity_time, gps_speed, gps_time;
+                          velocity_time, gps_speed, gps_time, gps_altitude;
 
     // Configs
     const Accessor<uint32_t> communication, filter_config, comrate1, comrate2,

@@ -47,6 +47,7 @@
 #include "gp9/registers.h"
 #include "gp9/Reset.h"
 #include <string>
+#include <math.h>
 
 float covar[9];     // orientation covariance values
 const char VERSION[10] = "0.0.3";   // gp9_driver version
@@ -109,11 +110,18 @@ void configureSensor(gp9::Comms* sensor)
 {
   gp9::Registers r;
 
-  uint32_t comm_reg = (BAUD_115200 << COM_BAUD_START);
+  uint32_t comm_reg = (BAUD_115200 << COM_BAUD_START) | COM_GPS_DATA_ENABLED;
   r.communication.set(0, comm_reg);
-  if (!sensor->sendWaitAck(r.comrate2))
+  if (!sensor->sendWaitAck(r.communication))
   {
     throw std::runtime_error("Unable to set CREG_COM_SETTINGS.");
+  }
+
+  uint32_t raw1_rate = 0;  //Set all raw rates to zero
+  r.comrate1.set(0, raw1_rate);
+  if (!sensor->sendWaitAck(r.comrate1))
+  {
+    throw std::runtime_error("Unable to set CREG_COM_RATES1.");
   }
 
   uint32_t raw_rate = (0 << RATE2_ALL_RAW_START);
@@ -139,7 +147,7 @@ void configureSensor(gp9::Comms* sensor)
     throw std::runtime_error("Unable to set CREG_COM_RATES4.");
   }
 
-  uint32_t misc_rate = (10 << RATE5_EULER_START) | (0 << RATE5_POSITION_START)
+  uint32_t misc_rate = (2 << RATE5_EULER_START) | (0 << RATE5_POSITION_START)
            | (0 << RATE5_VELOCITY_START) | (10 << RATE5_QUAT_START);
   r.comrate5.set(0, misc_rate);
   if (!sensor->sendWaitAck(r.comrate5))
@@ -147,7 +155,8 @@ void configureSensor(gp9::Comms* sensor)
     throw std::runtime_error("Unable to set CREG_COM_RATES5.");
   }
 
-  uint32_t health_rate = (0 << RATE6_POSE_START) | (5 << RATE6_HEALTH_START);  // note:  5 gives 2 hz rate
+  uint32_t health_rate = (0 << RATE6_POSE_START) | (5 << RATE6_HEALTH_START)
+	| (10 << RATE6_VARIANCE_START);  // note:  5 gives 2 hz rate for health
   r.comrate6.set(0, health_rate);
   if (!sensor->sendWaitAck(r.comrate6))
   {
@@ -240,7 +249,7 @@ void publishMsgs(gp9::Registers& r, ros::NodeHandle* n, const std_msgs::Header& 
   static ros::Publisher mag_pub = n->advertise<geometry_msgs::Vector3Stamped>("imu/mag", 1, false);
   static ros::Publisher rpy_pub = n->advertise<geometry_msgs::Vector3Stamped>("imu/rpy", 1, false);
   static ros::Publisher temp_pub = n->advertise<std_msgs::Float32>("imu/temperature", 1, false);
-  static ros::Publisher pos_pub = n->advertise<sensor_msgs::NavSatFix>("imu/position", 1, false);
+  static ros::Publisher pos_pub = n->advertise<sensor_msgs::NavSatFix>("gps/fix", 1, false);
 
   if (imu_pub.getNumSubscribers() > 0)
   {
@@ -254,25 +263,46 @@ void publishMsgs(gp9::Registers& r, ros::NodeHandle* n, const std_msgs::Header& 
     imu_msg.orientation.w = r.quat.get_scaled(0);
 
     // Covariance of attitude.  set to constant default or parameter values
-    imu_msg.orientation_covariance[0] = covar[0];
-    imu_msg.orientation_covariance[1] = covar[1];
-    imu_msg.orientation_covariance[2] = covar[2];
-    imu_msg.orientation_covariance[3] = covar[3];
-    imu_msg.orientation_covariance[4] = covar[4];
-    imu_msg.orientation_covariance[5] = covar[5];
-    imu_msg.orientation_covariance[6] = covar[6];
-    imu_msg.orientation_covariance[7] = covar[7];
-    imu_msg.orientation_covariance[8] = covar[8];
+    imu_msg.orientation_covariance[0] = r.quat_var.get_scaled(1);
+    imu_msg.orientation_covariance[1] = 0;
+    imu_msg.orientation_covariance[2] = 0;
+    imu_msg.orientation_covariance[3] = 0;
+    imu_msg.orientation_covariance[4] = r.quat_var.get_scaled(2);
+    imu_msg.orientation_covariance[5] = 0;
+    imu_msg.orientation_covariance[6] = 0;
+    imu_msg.orientation_covariance[7] = 0;
+    imu_msg.orientation_covariance[8] = r.quat_var.get_scaled(3);
 
     // Angular velocity.  transform to ROS axes
     imu_msg.angular_velocity.x =  r.gyro.get_scaled(0);
     imu_msg.angular_velocity.y = -r.gyro.get_scaled(1);
     imu_msg.angular_velocity.z = -r.gyro.get_scaled(2);
 
+    //These should be possible to figure out from specs
+    imu_msg.angular_velocity_covariance[0] = 0;
+    imu_msg.angular_velocity_covariance[1] = 0;
+    imu_msg.angular_velocity_covariance[2] = 0;
+    imu_msg.angular_velocity_covariance[3] = 0;
+    imu_msg.angular_velocity_covariance[4] = 0;
+    imu_msg.angular_velocity_covariance[5] = 0;
+    imu_msg.angular_velocity_covariance[6] = 0;
+    imu_msg.angular_velocity_covariance[7] = 0;
+    imu_msg.angular_velocity_covariance[8] = 0;
+
     // Linear accel.  transform to ROS axes
     imu_msg.linear_acceleration.x =  r.accel.get_scaled(0);
     imu_msg.linear_acceleration.y = -r.accel.get_scaled(1);
     imu_msg.linear_acceleration.z = -r.accel.get_scaled(2);
+
+    imu_msg.linear_acceleration_covariance[0] = 0;
+    imu_msg.linear_acceleration_covariance[1] = 0;
+    imu_msg.linear_acceleration_covariance[2] = 0;
+    imu_msg.linear_acceleration_covariance[3] = 0;
+    imu_msg.linear_acceleration_covariance[4] = 0;
+    imu_msg.linear_acceleration_covariance[5] = 0;
+    imu_msg.linear_acceleration_covariance[6] = 0;
+    imu_msg.linear_acceleration_covariance[7] = 0;
+    imu_msg.linear_acceleration_covariance[8] = 0;
 
     imu_pub.publish(imu_msg);
   }
@@ -309,9 +339,49 @@ void publishMsgs(gp9::Registers& r, ros::NodeHandle* n, const std_msgs::Header& 
 
   if (pos_pub.getNumSubscribers() > 0)
   {
+    sensor_msgs::NavSatFix fix_msg;
     sensor_msgs::NavSatStatus status_msg;
 
-    //Put stuff here
+    fix_msg.header = header;
+
+    //Comonents of the status message
+    uint32_t health_reg = r.health.get(0);
+    //ROS_INFO("Health Register: %i", health_reg);
+    uint8_t gps_status = (health_reg >> HEALTH_GPS_ST_START) & HEALTH_GPS_ST_MASK;
+    //ROS_INFO("GPS_STATUS = %i", gps_status);
+    if (gps_status == 2) {
+	status_msg.status = status_msg.STATUS_FIX;
+    } else if (gps_status == 3) {
+	status_msg.status = status_msg.STATUS_SBAS_FIX;
+    } else {
+	status_msg.status = status_msg.STATUS_NO_FIX;
+    }
+    status_msg.service = status_msg.SERVICE_GPS;
+
+    //the fix message
+    fix_msg.status = status_msg;
+    fix_msg.latitude = r.latitude.get_scaled(0);
+    fix_msg.longitude = r.longitude.get_scaled(0);
+    fix_msg.altitude = r.gps_altitude.get_scaled(0);
+
+    //compute an approximate covariance
+    float HDOP = (float)((health_reg >> HEALTH_HDOP_START) & HEALTH_HDOP_MASK);
+    HDOP = HDOP / 10;
+    //ROS_INFO("HDOP = %f", HDOP);
+    float hvar = pow(HDOP * 3, 2);
+    fix_msg.position_covariance[0] = hvar;
+    fix_msg.position_covariance[1] = 0;
+    fix_msg.position_covariance[2] = 0;
+    fix_msg.position_covariance[3] = 0;
+    fix_msg.position_covariance[4] = hvar;
+    fix_msg.position_covariance[5] = 0;
+    fix_msg.position_covariance[6] = 0;
+    fix_msg.position_covariance[6] = 0;
+    fix_msg.position_covariance[8] = 25;	//estimate
+
+    fix_msg.position_covariance_type = fix_msg.COVARIANCE_TYPE_APPROXIMATED; 
+
+    pos_pub.publish(fix_msg);
   }
 }
 
