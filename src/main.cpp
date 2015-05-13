@@ -257,7 +257,7 @@ void publishMsgs(gp9::Registers& r, ros::NodeHandle* n, const std_msgs::Header& 
     imu_msg.header = header;
 
     // IMU outputs [w,x,y,z], convert to [x,y,z,w] & transform to ROS axes
-    imu_msg.orientation.x =  r.quat.get_scaled(1);
+    imu_msg.orientation.x = r.quat.get_scaled(1);
     imu_msg.orientation.y = -r.quat.get_scaled(2);
     imu_msg.orientation.z = -r.quat.get_scaled(3);
     imu_msg.orientation.w = r.quat.get_scaled(0);
