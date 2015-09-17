@@ -257,8 +257,8 @@ void publishMsgs(gp9::Registers& r, ros::NodeHandle* n, const std_msgs::Header& 
     imu_msg.header = header;
 
     // IMU outputs [w,x,y,z], convert to [x,y,z,w] & transform to ROS axes
-    imu_msg.orientation.x = r.quat.get_scaled(1);
-    imu_msg.orientation.y = -r.quat.get_scaled(2);
+    imu_msg.orientation.x = r.quat.get_scaled(2);
+    imu_msg.orientation.y = r.quat.get_scaled(1);
     imu_msg.orientation.z = -r.quat.get_scaled(3);
     imu_msg.orientation.w = r.quat.get_scaled(0);
 
@@ -274,8 +274,8 @@ void publishMsgs(gp9::Registers& r, ros::NodeHandle* n, const std_msgs::Header& 
     imu_msg.orientation_covariance[8] = r.quat_var.get_scaled(3);
 
     // Angular velocity.  transform to ROS axes
-    imu_msg.angular_velocity.x =  r.gyro.get_scaled(0);
-    imu_msg.angular_velocity.y = -r.gyro.get_scaled(1);
+    imu_msg.angular_velocity.x = r.gyro.get_scaled(1);
+    imu_msg.angular_velocity.y = r.gyro.get_scaled(0);
     imu_msg.angular_velocity.z = -r.gyro.get_scaled(2);
 
     //These should be possible to figure out from specs
@@ -290,8 +290,8 @@ void publishMsgs(gp9::Registers& r, ros::NodeHandle* n, const std_msgs::Header& 
     imu_msg.angular_velocity_covariance[8] = 0;
 
     // Linear accel.  transform to ROS axes
-    imu_msg.linear_acceleration.x =  r.accel.get_scaled(0);
-    imu_msg.linear_acceleration.y = -r.accel.get_scaled(1);
+    imu_msg.linear_acceleration.x =  r.accel.get_scaled(1);
+    imu_msg.linear_acceleration.y =  r.accel.get_scaled(0);
     imu_msg.linear_acceleration.z = -r.accel.get_scaled(2);
 
     imu_msg.linear_acceleration_covariance[0] = 0;
@@ -312,8 +312,8 @@ void publishMsgs(gp9::Registers& r, ros::NodeHandle* n, const std_msgs::Header& 
   {
     geometry_msgs::Vector3Stamped mag_msg;
     mag_msg.header = header;
-    mag_msg.vector.x =  r.mag.get_scaled(0);
-    mag_msg.vector.y = -r.mag.get_scaled(1);
+    mag_msg.vector.x =  r.mag.get_scaled(1);
+    mag_msg.vector.y =  r.mag.get_scaled(0);
     mag_msg.vector.z = -r.mag.get_scaled(2);
     mag_pub.publish(mag_msg);
   }
@@ -323,8 +323,8 @@ void publishMsgs(gp9::Registers& r, ros::NodeHandle* n, const std_msgs::Header& 
   {
     geometry_msgs::Vector3Stamped rpy_msg;
     rpy_msg.header = header;
-    rpy_msg.vector.x =  r.euler.get_scaled(0);
-    rpy_msg.vector.y = -r.euler.get_scaled(1);
+    rpy_msg.vector.x =  r.euler.get_scaled(1);
+    rpy_msg.vector.y =  r.euler.get_scaled(0);
     rpy_msg.vector.z = -r.euler.get_scaled(2);
     rpy_pub.publish(rpy_msg);
   }
@@ -448,6 +448,8 @@ int main(int argc, char **argv)
       first_failure = true;
       try
       {
+        //Set DTR (pin 4) for driving voltage level converter
+        //ser.setDTR(true);
         gp9::Comms sensor(&ser);
         configureSensor(&sensor);
         gp9::Registers registers;
