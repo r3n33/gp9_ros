@@ -84,7 +84,13 @@ int16_t Comms::receive(Registers* registers = NULL)
       if (snp.length() > 3)
       {
         ROS_WARN_STREAM_COND(!first_spin_,
-          "Discarded " << 5 + snp.length() - 3 << " junk byte(s) preceeding packet.");
+          "Discarded " << 5 + snp.length() - 3 << " junk byte(s) preceding packet.");
+        std::stringstream error_bytes;
+        for (unsigned i=0; i<snp.length(); ++i)
+        {
+          error_bytes << (int)snp[i] << ",";
+        }
+        ROS_WARN_STREAM_COND(!first_spin_, "Junk: " << error_bytes);
       }
       if (serial_->read(&type, 1) != 1) throw SerialTimeout();
       if (serial_->read(&address, 1) != 1) throw SerialTimeout();
@@ -221,4 +227,7 @@ bool Comms::sendWaitAck(const Accessor_& r)
   }
   return false;
 }
+
+
+
 }  // namespace gp9

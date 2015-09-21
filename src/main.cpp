@@ -147,7 +147,7 @@ void configureSensor(gp9::Comms* sensor)
     throw std::runtime_error("Unable to set CREG_COM_RATES4.");
   }
 
-  uint32_t misc_rate = (2 << RATE5_EULER_START) | (0 << RATE5_POSITION_START)
+  uint32_t misc_rate = (2 << RATE5_EULER_START) | (10 << RATE5_POSITION_START)
            | (0 << RATE5_VELOCITY_START) | (10 << RATE5_QUAT_START);
   r.comrate5.set(0, misc_rate);
   if (!sensor->sendWaitAck(r.comrate5))
