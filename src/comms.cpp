@@ -58,20 +58,30 @@ int16_t Comms::receive(Registers* registers = NULL)
   try
   {
     size_t available = serial_->available();
+    while (available  < 5) {
+      //hold until we get a packet (this seems to cause duplicate reads otherwise)
+      available = serial_->available();
+    }
     if (available > 255)
     {
       ROS_WARN_STREAM("Serial read buffer is " << available << ", now flushing in an attempt to catch up.");
       serial_->flushInput();
+    } else {
+      ROS_DEBUG("Serial Buffer has %d bytes available.", (int)available);
     }
 
     // Optimistically assume that the next five bytes on the wire are a packet header.
     uint8_t header_bytes[5];
     serial_->read(header_bytes, 5);
 
+    ROS_DEBUG_STREAM("Header:" << (int)header_bytes[0] << "," << (int)header_bytes[1] << "," 
+      << (int)header_bytes[2] << "," << (int)header_bytes[3] << "," << (int)header_bytes[4]);
+
     uint8_t type, address;
     if (memcmp(header_bytes, "snp", 3) == 0)
     {
       // Optimism win.
+      ROS_DEBUG("Got SNP where expected");
       type = header_bytes[3];
       address = header_bytes[4];
     }
@@ -90,7 +100,7 @@ int16_t Comms::receive(Registers* registers = NULL)
         {
           error_bytes << (int)snp[i] << ",";
         }
-        ROS_WARN_STREAM_COND(!first_spin_, "Junk: " << error_bytes);
+        ROS_WARN_STREAM_COND(!first_spin_, "Junk: " << error_bytes.str());
       }
       if (serial_->read(&type, 1) != 1) throw SerialTimeout();
       if (serial_->read(&address, 1) != 1) throw SerialTimeout();
@@ -135,6 +145,13 @@ int16_t Comms::receive(Registers* registers = NULL)
     if (checksum_transmitted != checksum_calculated)
     {
       //ROS_WARN(data);
+      std::stringstream error_bytes;
+      for (unsigned i=0; i<data.length(); ++i)
+      {
+        error_bytes << (int)data[i] << ",";
+      }
+      error_bytes << checksum_transmitted;
+      ROS_WARN_STREAM("Non checksum data: " << error_bytes.str());
       throw BadChecksum();
     }
 

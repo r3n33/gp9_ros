@@ -249,6 +249,7 @@ void publishMsgs(gp9::Registers& r, ros::NodeHandle* n, const std_msgs::Header& 
   static ros::Publisher mag_pub = n->advertise<geometry_msgs::Vector3Stamped>("imu/mag", 1, false);
   static ros::Publisher rpy_pub = n->advertise<geometry_msgs::Vector3Stamped>("imu/rpy", 1, false);
   static ros::Publisher temp_pub = n->advertise<std_msgs::Float32>("imu/temperature", 1, false);
+  static ros::Publisher temp2_pub = n->advertise<std_msgs::Float32>("imu/temperature2", 1, false);
   static ros::Publisher pos_pub = n->advertise<sensor_msgs::NavSatFix>("gps/fix", 1, false);
 
   if (imu_pub.getNumSubscribers() > 0)
@@ -337,6 +338,14 @@ void publishMsgs(gp9::Registers& r, ros::NodeHandle* n, const std_msgs::Header& 
     temp_pub.publish(temp_msg);
   }
 
+  // Temperature2
+  if (temp2_pub.getNumSubscribers() > 0)
+  {
+    std_msgs::Float32 temp2_msg;
+    temp2_msg.data = r.temperature2.get_scaled(0);
+    temp2_pub.publish(temp2_msg);
+  }
+
   if (pos_pub.getNumSubscribers() > 0)
   {
     sensor_msgs::NavSatFix fix_msg;
@@ -350,11 +359,11 @@ void publishMsgs(gp9::Registers& r, ros::NodeHandle* n, const std_msgs::Header& 
     uint8_t gps_status = (health_reg >> HEALTH_GPS_ST_START) & HEALTH_GPS_ST_MASK;
     //ROS_INFO("GPS_STATUS = %i", gps_status);
     if (gps_status == 2) {
-	status_msg.status = status_msg.STATUS_FIX;
+      status_msg.status = status_msg.STATUS_FIX;
     } else if (gps_status == 3) {
-	status_msg.status = status_msg.STATUS_SBAS_FIX;
+      status_msg.status = status_msg.STATUS_SBAS_FIX;
     } else {
-	status_msg.status = status_msg.STATUS_NO_FIX;
+      status_msg.status = status_msg.STATUS_NO_FIX;
     }
     status_msg.service = status_msg.SERVICE_GPS;
 
