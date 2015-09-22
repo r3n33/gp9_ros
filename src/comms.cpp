@@ -58,9 +58,13 @@ int16_t Comms::receive(Registers* registers = NULL)
   try
   {
     size_t available = serial_->available();
-    while (available  < 5) {
-      //hold until we get a packet (this seems to cause duplicate reads otherwise)
-      available = serial_->available();
+    // while (available < 5) {
+    //   //hold until we get a packet (this seems to cause duplicate reads otherwise)
+    //   available = serial_->available();
+    // }
+    if (available < 5) {
+      // Return -2 to fool the sendWaitAck function into trying again
+      return -2;
     }
     if (available > 255)
     {
@@ -72,6 +76,7 @@ int16_t Comms::receive(Registers* registers = NULL)
 
     // Optimistically assume that the next five bytes on the wire are a packet header.
     uint8_t header_bytes[5];
+    // if (serial_->read(header_bytes, 5) != 5) throw SerialTimeout();
     serial_->read(header_bytes, 5);
 
     ROS_DEBUG_STREAM("Header:" << (int)header_bytes[0] << "," << (int)header_bytes[1] << "," 
@@ -226,8 +231,8 @@ bool Comms::sendWaitAck(const Accessor_& r)
   for (uint8_t t = 0; t < tries; t++)
   {
     send(r);
-    const uint8_t listens = 20;
-    for (uint8_t i = 0; i < listens; i++)
+    const uint16_t listens = 10000;
+    for (uint16_t i = 0; i < listens; i++)
     {
       int16_t received = receive();
       if (received == r.index)
