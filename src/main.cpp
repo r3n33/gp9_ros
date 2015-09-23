@@ -351,7 +351,10 @@ void publishMsgs(gp9::Registers& r, ros::NodeHandle* n, const std_msgs::Header& 
     sensor_msgs::NavSatFix fix_msg;
     sensor_msgs::NavSatStatus status_msg;
 
-    fix_msg.header = header;
+    std_msgs::Header map_header;
+    map_header.frame_id = "map";
+    map_header.stamp = ros::Time::now();
+    fix_msg.header = map_header;
 
     //Comonents of the status message
     uint32_t health_reg = r.health.get(0);
