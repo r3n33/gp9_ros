@@ -1,5 +1,10 @@
 <launch>
-    <node pkg="gp9" type="gp9_driver" name="gp9_imu"/>
+    <node pkg="gp9" type="gp9_driver" name="gp9_imu">
+        <param name="output_raw" value="true" />
+        <param name="mag_updates" value="false" />
+        <param name="acc_updates" value="true" />
+        <param name="zero_gyros" value="true" />
+    </node>
     <node pkg="tf" type="static_transform_publisher" name="link1_broadcaster" 
         args="0.0 0.0 0.0 0.0 0.0 0.0 map imu_link 100" />
 </launch>

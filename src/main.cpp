@@ -117,7 +117,14 @@ void configureSensor(gp9::Comms* sensor)
     throw std::runtime_error("Unable to set CREG_COM_SETTINGS.");
   }
 
-  uint32_t raw1_rate = 0;  //Set all raw rates to zero
+  bool output_raw;
+  ros::param::param<bool>("~output_raw", output_raw, false);
+  uint32_t raw1_rate;
+  if (output_raw) {
+    raw1_rate = (10 << RATE1_RAW_ACCEL_START)| (10 << RATE1_RAW_GYRO_START); 
+  } else {
+    raw1_rate = 0;
+  }
   r.comrate1.set(0, raw1_rate);
   if (!sensor->sendWaitAck(r.comrate1))
   {
@@ -246,6 +253,7 @@ bool handleResetService(gp9::Comms* sensor,
 void publishMsgs(gp9::Registers& r, ros::NodeHandle* n, const std_msgs::Header& header)
 {
   static ros::Publisher imu_pub = n->advertise<sensor_msgs::Imu>("imu/data", 1, false);
+  static ros::Publisher imu_raw_pub = n->advertise<sensor_msgs::Imu>("imu/raw", 1, false);
   static ros::Publisher mag_pub = n->advertise<geometry_msgs::Vector3Stamped>("imu/mag", 1, false);
   static ros::Publisher rpy_pub = n->advertise<geometry_msgs::Vector3Stamped>("imu/rpy", 1, false);
   static ros::Publisher temp_pub = n->advertise<std_msgs::Float32>("imu/temperature", 1, false);
@@ -264,11 +272,11 @@ void publishMsgs(gp9::Registers& r, ros::NodeHandle* n, const std_msgs::Header& 
     imu_msg.orientation.w = r.quat.get_scaled(0);
 
     // Covariance of attitude.  set to constant default or parameter values
-    imu_msg.orientation_covariance[0] = r.quat_var.get_scaled(1);
+    imu_msg.orientation_covariance[0] = r.quat_var.get_scaled(2);
     imu_msg.orientation_covariance[1] = 0;
     imu_msg.orientation_covariance[2] = 0;
     imu_msg.orientation_covariance[3] = 0;
-    imu_msg.orientation_covariance[4] = r.quat_var.get_scaled(2);
+    imu_msg.orientation_covariance[4] = r.quat_var.get_scaled(1);
     imu_msg.orientation_covariance[5] = 0;
     imu_msg.orientation_covariance[6] = 0;
     imu_msg.orientation_covariance[7] = 0;
@@ -280,32 +288,88 @@ void publishMsgs(gp9::Registers& r, ros::NodeHandle* n, const std_msgs::Header& 
     imu_msg.angular_velocity.z = -r.gyro.get_scaled(2);
 
     //These should be possible to figure out from specs
-    imu_msg.angular_velocity_covariance[0] = 0;
+    imu_msg.angular_velocity_covariance[0] = 0.0000008;
     imu_msg.angular_velocity_covariance[1] = 0;
     imu_msg.angular_velocity_covariance[2] = 0;
     imu_msg.angular_velocity_covariance[3] = 0;
-    imu_msg.angular_velocity_covariance[4] = 0;
+    imu_msg.angular_velocity_covariance[4] = 0.0000008;
     imu_msg.angular_velocity_covariance[5] = 0;
     imu_msg.angular_velocity_covariance[6] = 0;
     imu_msg.angular_velocity_covariance[7] = 0;
-    imu_msg.angular_velocity_covariance[8] = 0;
+    imu_msg.angular_velocity_covariance[8] = 0.0000008;
 
     // Linear accel.  transform to ROS axes
     imu_msg.linear_acceleration.x =  r.accel.get_scaled(1);
     imu_msg.linear_acceleration.y =  r.accel.get_scaled(0);
     imu_msg.linear_acceleration.z = -r.accel.get_scaled(2);
 
-    imu_msg.linear_acceleration_covariance[0] = 0;
+    imu_msg.linear_acceleration_covariance[0] = 0.00005;
     imu_msg.linear_acceleration_covariance[1] = 0;
     imu_msg.linear_acceleration_covariance[2] = 0;
     imu_msg.linear_acceleration_covariance[3] = 0;
-    imu_msg.linear_acceleration_covariance[4] = 0;
+    imu_msg.linear_acceleration_covariance[4] = 0.00005;
     imu_msg.linear_acceleration_covariance[5] = 0;
     imu_msg.linear_acceleration_covariance[6] = 0;
     imu_msg.linear_acceleration_covariance[7] = 0;
-    imu_msg.linear_acceleration_covariance[8] = 0;
+    imu_msg.linear_acceleration_covariance[8] = 0.00005;
 
     imu_pub.publish(imu_msg);
+  }
+
+  if (imu_raw_pub.getNumSubscribers() > 0)
+  {
+    sensor_msgs::Imu imu_msg;
+    imu_msg.header = header;
+
+    // IMU outputs [w,x,y,z], convert to [x,y,z,w] & transform to ROS axes
+    imu_msg.orientation.x = r.quat.get_scaled(2);
+    imu_msg.orientation.y = r.quat.get_scaled(1);
+    imu_msg.orientation.z = -r.quat.get_scaled(3);
+    imu_msg.orientation.w = r.quat.get_scaled(0);
+
+    // Covariance of attitude.  set to constant default or parameter values
+    imu_msg.orientation_covariance[0] = r.quat_var.get_scaled(2);
+    imu_msg.orientation_covariance[1] = 0;
+    imu_msg.orientation_covariance[2] = 0;
+    imu_msg.orientation_covariance[3] = 0;
+    imu_msg.orientation_covariance[4] = r.quat_var.get_scaled(1);
+    imu_msg.orientation_covariance[5] = 0;
+    imu_msg.orientation_covariance[6] = 0;
+    imu_msg.orientation_covariance[7] = 0;
+    imu_msg.orientation_covariance[8] = r.quat_var.get_scaled(3);
+
+    // Angular velocity.  transform to ROS axes
+    imu_msg.angular_velocity.x = r.gyro_raw.get_scaled(1);
+    imu_msg.angular_velocity.y = r.gyro_raw.get_scaled(0);
+    imu_msg.angular_velocity.z = -r.gyro_raw.get_scaled(2);
+
+    //These should be possible to figure out from specs
+    imu_msg.angular_velocity_covariance[0] = 0.0000008;
+    imu_msg.angular_velocity_covariance[1] = 0;
+    imu_msg.angular_velocity_covariance[2] = 0;
+    imu_msg.angular_velocity_covariance[3] = 0;
+    imu_msg.angular_velocity_covariance[4] = 0.0000008;
+    imu_msg.angular_velocity_covariance[5] = 0;
+    imu_msg.angular_velocity_covariance[6] = 0;
+    imu_msg.angular_velocity_covariance[7] = 0;
+    imu_msg.angular_velocity_covariance[8] = 0.0000008;
+
+    // Linear accel.  transform to ROS axes
+    imu_msg.linear_acceleration.x =  r.accel_raw.get_scaled(1);
+    imu_msg.linear_acceleration.y =  r.accel_raw.get_scaled(0);
+    imu_msg.linear_acceleration.z = -r.accel_raw.get_scaled(2);
+
+    imu_msg.linear_acceleration_covariance[0] = 0.00005;
+    imu_msg.linear_acceleration_covariance[1] = 0;
+    imu_msg.linear_acceleration_covariance[2] = 0;
+    imu_msg.linear_acceleration_covariance[3] = 0;
+    imu_msg.linear_acceleration_covariance[4] = 0.00005;
+    imu_msg.linear_acceleration_covariance[5] = 0;
+    imu_msg.linear_acceleration_covariance[6] = 0;
+    imu_msg.linear_acceleration_covariance[7] = 0;
+    imu_msg.linear_acceleration_covariance[8] = 0.00005;
+
+    imu_raw_pub.publish(imu_msg);
   }
 
   // Magnetometer.  transform to ROS axes
