@@ -288,30 +288,32 @@ void publishMsgs(gp9::Registers& r, ros::NodeHandle* n, const std_msgs::Header& 
     imu_msg.angular_velocity.z = -r.gyro.get_scaled(2);
 
     //These should be possible to figure out from specs
-    imu_msg.angular_velocity_covariance[0] = 0.0000008;
+    //0.0000008 from testing
+    imu_msg.angular_velocity_covariance[0] = 0.002;
     imu_msg.angular_velocity_covariance[1] = 0;
     imu_msg.angular_velocity_covariance[2] = 0;
     imu_msg.angular_velocity_covariance[3] = 0;
-    imu_msg.angular_velocity_covariance[4] = 0.0000008;
+    imu_msg.angular_velocity_covariance[4] = 0.002;
     imu_msg.angular_velocity_covariance[5] = 0;
     imu_msg.angular_velocity_covariance[6] = 0;
     imu_msg.angular_velocity_covariance[7] = 0;
-    imu_msg.angular_velocity_covariance[8] = 0.0000008;
+    imu_msg.angular_velocity_covariance[8] = 0.002;
 
     // Linear accel.  transform to ROS axes
     imu_msg.linear_acceleration.x =  r.accel.get_scaled(1);
     imu_msg.linear_acceleration.y =  r.accel.get_scaled(0);
     imu_msg.linear_acceleration.z = -r.accel.get_scaled(2);
 
-    imu_msg.linear_acceleration_covariance[0] = 0.00005;
+    //0.00005 from testing
+    imu_msg.linear_acceleration_covariance[0] = 0.002;
     imu_msg.linear_acceleration_covariance[1] = 0;
     imu_msg.linear_acceleration_covariance[2] = 0;
     imu_msg.linear_acceleration_covariance[3] = 0;
-    imu_msg.linear_acceleration_covariance[4] = 0.00005;
+    imu_msg.linear_acceleration_covariance[4] = 0.002;
     imu_msg.linear_acceleration_covariance[5] = 0;
     imu_msg.linear_acceleration_covariance[6] = 0;
     imu_msg.linear_acceleration_covariance[7] = 0;
-    imu_msg.linear_acceleration_covariance[8] = 0.00005;
+    imu_msg.linear_acceleration_covariance[8] = 0.002;
 
     imu_pub.publish(imu_msg);
   }
