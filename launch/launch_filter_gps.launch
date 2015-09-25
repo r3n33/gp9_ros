@@ -2,20 +2,20 @@
     <node pkg="gp9" type="gp9_driver" name="gp9_imu">
         <param name="zero_gyros" value="false" />
         <param name="output_raw" value="false" />
-        <param name="mag_updates" value="true" />
+        <param name="mag_updates" value="false" />
     </node>
     <node pkg="robot_localization" type="ekf_localization_node" name="ekf_localization" clear_params="true">
         <param name="frequency" value="20"/>
         <param name="sensor_timeout" value="0.5"/>
         <!-- <param name="two_d_mode" value="false"/> -->
         <!-- Defaults to "map" if unspecified -->
-        <!-- <param name="map_frame" value="map"/> -->
+        <param name="map_frame" value="map"/>
         <!-- Defaults to "odom" if unspecified -->
-        <!-- <param name="odom_frame" value="odom"/> -->
+        <param name="odom_frame" value="odom"/>
         <!-- Defaults to "base_link" if unspecified -->
         <param name="base_link_frame" value="imu_link"/>
         <!-- Defaults to the value of "odom_frame" if unspecified -->
-        <!-- <param name="world_frame" value="odom"/> -->
+        <param name="world_frame" value="odom"/>
         <param name="imu0" value="imu/data"/>
         <rosparam param="imu0_config">[false, false, false, 
                                      true,  true,  true, 
@@ -38,8 +38,11 @@
         <param name="magnetic_declination_radians" value="0"/>
         <!-- <param name="yaw_offset" value="1.5707963"/> -->
         <param name="yaw_offset" value="0"/>
-        <param name="wait_for_datum" value="false">
+        <param name="wait_for_datum" value="false" />
+        <param name="publish_filtered_gps" value="true" />
         <!-- <rosparam param="datum">[55.944904, -3.186693, 0.0, map, base_link]</rosparam> -->
     </node>
+    <node pkg="tf" type="static_transform_publisher" name="link1_broadcaster" 
+       args="0.0 0.0 0.0 0.0 0.0 0.0 map odom 100" />
 
 </launch>
