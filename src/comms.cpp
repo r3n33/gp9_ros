@@ -44,6 +44,8 @@
 #include "serial/serial.h"
 #include "gp9/registers.h"
 
+
+
 namespace gp9
 {
 
@@ -231,6 +233,7 @@ bool Comms::sendWaitAck(const Accessor_& r)
   for (uint8_t t = 0; t < tries; t++)
   {
     send(r);
+    serial_->waitReadable ();
     const uint16_t listens = 10000;
     for (uint16_t i = 0; i < listens; i++)
     {
@@ -238,15 +241,25 @@ bool Comms::sendWaitAck(const Accessor_& r)
       if (received == r.index)
       {
         ROS_DEBUG("Message %02x ack received.", received);
+#ifdef DEBUGG
+        std::cout<<"akk recived\n ********* \n";
+#endif
         return true;
       }
       else if (received == -1)
       {
         ROS_DEBUG("Serial read timed out waiting for ack. Attempting to retransmit.");
+#ifdef DEBUGG
+        std::cout<<"Serial read timed out waiting for ack. trying again\n";
+#endif
         break;
       }
     }
   }
+  ROS_DEBUG("Serial read did not recive ack for %i attempts. flag is false", tries);
+#ifdef DEBUGG
+  std::cout<<"Serial read did not recive ack.\n ********* \n";
+#endif
   return false;
 }
 

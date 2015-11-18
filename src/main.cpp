@@ -474,7 +474,7 @@ int main(int argc, char **argv)
   // Load parameters from private node handle.
   std::string port;
   int32_t baud;
-  ros::param::param<std::string>("~port", port, "/dev/ttyAMA0");
+  ros::param::param<std::string>("~port", port, "/dev/ttyUSB0");
   ros::param::param<int32_t>("~baud", baud, 115200);
 
   serial::Serial ser;
@@ -482,6 +482,11 @@ int main(int argc, char **argv)
   ser.setBaudrate(baud);
   serial::Timeout to = serial::Timeout(50, 50, 0, 50, 0);
   ser.setTimeout(to);
+
+#ifdef DEBUGG
+  std::cout<<"The baud rate for serial communication is: "<< baud<< "\n";
+  std::cout<<"The port for serial communication is: "<< port<< "\n";
+#endif
 
   ros::NodeHandle n;
 
@@ -515,6 +520,7 @@ int main(int argc, char **argv)
     try
     {
       ser.open();
+      ROS_DEBUG("Serial open no exception thorwn");
     }
     catch(const serial::IOException& e)
     {
