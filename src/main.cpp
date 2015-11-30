@@ -39,6 +39,7 @@
 #include "geometry_msgs/Vector3Stamped.h"
 #include "ros/ros.h"
 #include "sensor_msgs/Imu.h"
+#include "sensor_msgs/MagneticField.h"
 #include "sensor_msgs/NavSatFix.h"
 #include "serial/serial.h"            // must install serial library from apt-get
 #include "std_msgs/Float32.h"
@@ -255,6 +256,7 @@ void publishMsgs(gp9::Registers& r, ros::NodeHandle* n, const std_msgs::Header& 
   static ros::Publisher imu_pub = n->advertise<sensor_msgs::Imu>("imu/data", 1, false);
   static ros::Publisher imu_raw_pub = n->advertise<sensor_msgs::Imu>("imu/raw", 1, false);
   static ros::Publisher mag_pub = n->advertise<geometry_msgs::Vector3Stamped>("imu/mag", 1, false);
+  static ros::Publisher mag_pub_2 = n->advertise<sensor_msgs::MagneticField>("imu/mag_msg", 1, false);
   static ros::Publisher rpy_pub = n->advertise<geometry_msgs::Vector3Stamped>("imu/rpy", 1, false);
   static ros::Publisher temp_pub = n->advertise<std_msgs::Float32>("imu/temperature", 1, false);
   static ros::Publisher temp2_pub = n->advertise<std_msgs::Float32>("imu/temperature2", 1, false);
@@ -383,6 +385,16 @@ void publishMsgs(gp9::Registers& r, ros::NodeHandle* n, const std_msgs::Header& 
     mag_msg.vector.y =  r.mag.get_scaled(0);
     mag_msg.vector.z = -r.mag.get_scaled(2);
     mag_pub.publish(mag_msg);
+  }
+
+  if (mag_pub_2.getNumSubscribers() > 0)
+  {
+    sensor_msgs::MagneticField mag_msg;
+    mag_msg.header = header;
+    mag_msg.magnetic_field.x =  r.mag.get_scaled(0);
+    mag_msg.magnetic_field.y = -r.mag.get_scaled(1);
+    mag_msg.magnetic_field.z = -r.mag.get_scaled(2);
+    mag_pub_2.publish(mag_msg);
   }
 
   // Euler attitudes.  transform to ROS axes
