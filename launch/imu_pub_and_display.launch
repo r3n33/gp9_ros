@@ -1,0 +1,14 @@
+<launch>
+    <node pkg="gp9" type="gp9_driver" name="gp9_imu">
+        <param name="output_raw" value="true" />
+        <param name="mag_updates" value="false" />
+        <param name="acc_updates" value="true" />
+        <param name="zero_gyros" value="true" />
+    </node>
+<node pkg="imu_visualization" type="display_3D_visualization.py" name="gp9_3D_visualization_node" output="screen">
+	<param name="imu_topic" value="imu/data" />
+	<param name="imu_name" value="CHRobotics_gp9" />
+	<param name="mag_topic" value="/imu/mag_msg" />
+  </node>
+    
+</launch>
